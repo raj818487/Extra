@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>John Doe - Software Engineer Resume</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            line-height: 1.6;
+            background: white;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            color: #667eea;
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            color: #6c757d;
+            margin-bottom: 15px;
+        }
+        
+        .contact-info {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            font-size: 0.9rem;
+        }
+        
+        .contact-info span {
+            color: #6c757d;
+        }
+        
+        .section {
+            margin-bottom: 25px;
+        }
+        
+        .section h3 {
+            color: #495057;
+            border-bottom: 1px solid #e9ecef;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .experience-item, .education-item {
+            margin-bottom: 20px;
+        }
+        
+        .experience-item h4, .education-item h4 {
+            color: #667eea;
+            margin-bottom: 5px;
+            font-size: 1.1rem;
+        }
+        
+        .experience-item .company, .education-item .institution {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .experience-item .period, .education-item .period {
+            color: #6c757d;
+            font-size: 0.9rem;
+            font-style: italic;
+        }
+        
+        .experience-item ul {
+            margin-top: 10px;
+            padding-left: 20px;
+        }
+        
+        .experience-item li {
+            margin-bottom: 5px;
+        }
+        
+        .skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .skill-tag {
+            background: #667eea;
+            color: white;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .summary {
+            text-align: justify;
+            line-height: 1.8;
+        }
+        
+        @media print {
+            body { 
+                margin: 0; 
+                padding: 15px;
+            }
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>John Doe</h1>
+        <p>Senior Software Engineer</p>
+        <div class="contact-info">
+            <span>📧 john.doe@email.com</span>
+            <span>📱 +1 (555) 123-4567</span>
+            <span>📍 New York, NY</span>
+            <span>🔗 linkedin.com/in/johndoe</span>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h3>Professional Summary</h3>
+        <p class="summary">
+            Experienced software engineer with 5+ years of expertise in full-stack web development, 
+            specializing in JavaScript, React, and Node.js. Proven track record of delivering scalable 
+            applications and leading development teams. Passionate about clean code, user experience, 
+            and staying current with emerging technologies.
+        </p>
+    </div>
+
+    <div class="section">
+        <h3>Work Experience</h3>
+        
+        <div class="experience-item">
+            <h4>Senior Software Engineer</h4>
+            <div class="company">TechCorp Inc.</div>
+            <div class="period">January 2022 - Present</div>
+            <ul>
+                <li>Led development of microservices architecture serving 1M+ users</li>
+                <li>Managed team of 5 developers and mentored junior engineers</li>
+                <li>Implemented CI/CD pipelines reducing deployment time by 60%</li>
+                <li>Optimized database queries improving performance by 40%</li>
+            </ul>
+        </div>
+        
+        <div class="experience-item">
+            <h4>Software Engineer</h4>
+            <div class="company">StartupXYZ</div>
+            <div class="period">June 2020 - December 2021</div>
+            <ul>
+                <li>Developed RESTful APIs using Node.js and Express</li>
+                <li>Built responsive frontend applications with React and TypeScript</li>
+                <li>Collaborated with UX team to improve user experience</li>
+                <li>Participated in code reviews and technical planning sessions</li>
+            </ul>
+        </div>
+        
+        <div class="experience-item">
+            <h4>Junior Developer</h4>
+            <div class="company">WebSolutions Ltd.</div>
+            <div class="period">August 2018 - May 2020</div>
+            <ul>
+                <li>Developed and maintained client websites using HTML, CSS, and JavaScript</li>
+                <li>Worked with WordPress and custom PHP applications</li>
+                <li>Provided technical support and bug fixes for existing projects</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>Education</h3>
+        
+        <div class="education-item">
+            <h4>Bachelor of Science in Computer Science</h4>
+            <div class="institution">University of Technology</div>
+            <div class="period">2014 - 2018 | GPA: 3.8/4.0</div>
+            <p>Relevant coursework: Data Structures, Algorithms, Database Systems, Web Development</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>Technical Skills</h3>
+        <div class="skills">
+            <span class="skill-tag">JavaScript</span>
+            <span class="skill-tag">React</span>
+            <span class="skill-tag">Node.js</span>
+            <span class="skill-tag">TypeScript</span>
+            <span class="skill-tag">Python</span>
+            <span class="skill-tag">SQL</span>
+            <span class="skill-tag">MongoDB</span>
+            <span class="skill-tag">Docker</span>
+            <span class="skill-tag">AWS</span>
+            <span class="skill-tag">Git</span>
+            <span class="skill-tag">REST APIs</span>
+            <span class="skill-tag">GraphQL</span>
+            <span class="skill-tag">Agile/Scrum</span>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>Projects</h3>
+        
+        <div class="experience-item">
+            <h4>E-commerce Platform</h4>
+            <div class="period">2023</div>
+            <p>Built a full-stack e-commerce application using React, Node.js, and MongoDB. 
+            Features include user authentication, product management, and payment integration.</p>
+        </div>
+        
+        <div class="experience-item">
+            <h4>Task Management App</h4>
+            <div class="period">2022</div>
+            <p>Developed a collaborative task management tool with real-time updates using 
+            Socket.io and React. Includes drag-and-drop functionality and team collaboration features.</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>Certifications</h3>
+        <ul>
+            <li>AWS Certified Developer Associate (2023)</li>
+            <li>MongoDB Certified Developer (2022)</li>
+            <li>React Developer Certification (2021)</li>
+        </ul>
+    </div>
+</body>
+</html> 

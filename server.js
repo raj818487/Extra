@@ -24,9 +24,13 @@ const db = new sqlite3.Database(dbPath);
 // Initialize database tables
 function initializeDatabase() {
     db.serialize(() => {
-        // Create resumes table
+        db.run(`CREATE TABLE IF NOT EXISTS users (
+            username TEXT PRIMARY KEY,
+            password TEXT NOT NULL
+        )`);
         db.run(`CREATE TABLE IF NOT EXISTS resumes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
             name TEXT NOT NULL,
             title TEXT,
             email TEXT,
@@ -35,9 +39,9 @@ function initializeDatabase() {
             linkedin TEXT,
             sections TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(username) REFERENCES users(username)
         )`);
-
         console.log('Database initialized successfully');
     });
 }
@@ -50,14 +54,39 @@ const A4_WIDTH = 794; // 8.27 inches * 96 DPI
 const A4_HEIGHT = 1123; // 11.69 inches * 96 DPI
 
 // API Routes for Resume Management
+app.post('/api/register', (req, res) => {
+    const { username, password } = req.body;
+    db.get('SELECT username FROM users WHERE username = ?', [username], (err, row) => {
+        if (err) return res.status(500).json({ error: 'Database error' });
+        if (row) return res.status(409).json({ error: 'Username already exists' });
+        db.run('INSERT INTO users (username, password) VALUES (?, ?)', [username, password], function(err) {
+            if (err) return res.status(500).json({ error: 'Failed to register user' });
+            res.json({ success: true });
+        });
+    });
+});
+
+app.post('/api/login', (req, res) => {
+    const { username, password } = req.body;
+    db.get('SELECT 1 FROM users WHERE username = ? AND password = ? LIMIT 1', [username, password], (err, row) => {
+        if (err) {
+            res.status(500).json({ error: 'Database error' });
+        } else if (row) {
+            res.json({ success: true });
+        } else {
+            res.status(401).json({ error: 'Invalid credentials' });
+        }
+    });
+});
+
 app.post('/api/resumes', (req, res) => {
-    const { name, title, email, phone, location, linkedin, sections } = req.body;
+    const { username, name, title, email, phone, location, linkedin, sections } = req.body;
     
     const sectionsJson = JSON.stringify(sections);
     
     db.run(
-        'INSERT INTO resumes (name, title, email, phone, location, linkedin, sections) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [name, title, email, phone, location, linkedin, sectionsJson],
+        'INSERT INTO resumes (username, name, title, email, phone, location, linkedin, sections) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [username, name, title, email, phone, location, linkedin, sectionsJson],
         function(err) {
             if (err) {
                 console.error('Error saving resume:', err);
@@ -74,7 +103,8 @@ app.post('/api/resumes', (req, res) => {
 });
 
 app.get('/api/resumes', (req, res) => {
-    db.all('SELECT id, name, title, email, phone, location, linkedin, sections, created_at, updated_at FROM resumes ORDER BY updated_at DESC', (err, rows) => {
+    const { username } = req.query;
+    db.all('SELECT id, name, title, email, phone, location, linkedin, sections, created_at, updated_at FROM resumes WHERE username = ? ORDER BY updated_at DESC', [username], (err, rows) => {
         if (err) {
             console.error('Error fetching resumes:', err);
             res.status(500).json({ error: 'Failed to fetch resumes' });
@@ -146,6 +176,20 @@ app.delete('/api/resumes/:id', (req, res) => {
     });
 });
 
+// Update: Delete all resumes for a user
+app.post('/api/resumes/deleteAll', (req, res) => {
+    const { username } = req.body;
+    db.run('DELETE FROM resumes WHERE username = ?', [username], function(err) {
+        if (err) {
+            console.error('Error deleting all resumes:', err);
+            res.status(500).json({ error: 'Failed to delete all resumes' });
+        } else {
+            console.log(`All resumes for user ${username} deleted.`);
+            res.json({ message: 'All resumes deleted successfully' });
+        }
+    });
+});
+
 // Convert HTML to PDF
 app.post('/convert', async (req, res) => {
     try {
@@ -167,15 +211,15 @@ app.post('/convert', async (req, res) => {
         // Set content and wait for it to load
         await page.setContent(html, { waitUntil: 'networkidle0' });
         
-        // Generate PDF with A4 settings and reduced margins
+        // Generate PDF with A4 settings and minimal margins
         const pdf = await page.pdf({
             format: 'A4',
             printBackground: true,
             margin: {
-                top: '10mm',
-                right: '10mm',
-                bottom: '10mm',
-                left: '10mm'
+                top: '5mm',
+                right: '5mm',
+                bottom: '5mm',
+                left: '5mm'
             }
         });
         
@@ -216,15 +260,15 @@ app.post('/upload', upload.single('htmlFile'), async (req, res) => {
         // Set content and wait for it to load
         await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
         
-        // Generate PDF with A4 settings and reduced margins
+        // Generate PDF with A4 settings and minimal margins
         const pdf = await page.pdf({
             format: 'A4',
             printBackground: true,
             margin: {
-                top: '10mm',
-                right: '10mm',
-                bottom: '10mm',
-                left: '10mm'
+                top: '5mm',
+                right: '5mm',
+                bottom: '5mm',
+                left: '5mm'
             }
         });
         

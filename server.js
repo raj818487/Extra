@@ -167,15 +167,15 @@ app.post('/convert', async (req, res) => {
         // Set content and wait for it to load
         await page.setContent(html, { waitUntil: 'networkidle0' });
         
-        // Generate PDF with A4 settings
+        // Generate PDF with A4 settings and reduced margins
         const pdf = await page.pdf({
             format: 'A4',
             printBackground: true,
             margin: {
-                top: '20mm',
-                right: '20mm',
-                bottom: '20mm',
-                left: '20mm'
+                top: '10mm',
+                right: '10mm',
+                bottom: '10mm',
+                left: '10mm'
             }
         });
         
@@ -216,15 +216,15 @@ app.post('/upload', upload.single('htmlFile'), async (req, res) => {
         // Set content and wait for it to load
         await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
         
-        // Generate PDF with A4 settings
+        // Generate PDF with A4 settings and reduced margins
         const pdf = await page.pdf({
             format: 'A4',
             printBackground: true,
             margin: {
-                top: '20mm',
-                right: '20mm',
-                bottom: '20mm',
-                left: '20mm'
+                top: '10mm',
+                right: '10mm',
+                bottom: '10mm',
+                left: '10mm'
             }
         });
         

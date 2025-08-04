@@ -521,6 +521,83 @@
                     <h4>Corporate Traditional</h4>
                     <p>Classic business style with formal layout and typography</p>
                 </div>
+                <div class="template-option" onclick="selectTemplate('simple')">
+                    <div class="template-preview" style="background: #ffffff; border: 2px solid #333;">
+                        <div style="text-align: center; color: #333;">
+                            <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 5px;">SIMPLE</div>
+                            <div style="font-size: 0.7rem;">Clean & Minimal</div>
+                        </div>
+                    </div>
+                    <h4>Simple Clean</h4>
+                    <p>Minimal design without header box, clean and straightforward</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Font Selector -->
+        <div class="template-selector">
+            <h2>🔤 Choose Your Font</h2>
+            <div class="template-options">
+                <div class="template-option selected" onclick="selectFont('arial')">
+                    <div class="template-preview" style="background: #f8f9fa; border: 2px solid #495057;">
+                        <div style="text-align: center; color: #495057; font-family: Arial, sans-serif;">
+                            <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 5px;">Arial</div>
+                            <div style="font-size: 0.7rem;">Clean & Professional</div>
+                        </div>
+                    </div>
+                    <h4>Arial</h4>
+                    <p>Clean and professional sans-serif font</p>
+                </div>
+                <div class="template-option" onclick="selectFont('times')">
+                    <div class="template-preview" style="background: #f8f9fa; border: 2px solid #495057;">
+                        <div style="text-align: center; color: #495057; font-family: 'Times New Roman', serif;">
+                            <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 5px;">Times New Roman</div>
+                            <div style="font-size: 0.7rem;">Traditional & Formal</div>
+                        </div>
+                    </div>
+                    <h4>Times New Roman</h4>
+                    <p>Traditional serif font for formal documents</p>
+                </div>
+                <div class="template-option" onclick="selectFont('helvetica')">
+                    <div class="template-preview" style="background: #f8f9fa; border: 2px solid #495057;">
+                        <div style="text-align: center; color: #495057; font-family: Helvetica, Arial, sans-serif;">
+                            <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 5px;">Helvetica</div>
+                            <div style="font-size: 0.7rem;">Modern & Clean</div>
+                        </div>
+                    </div>
+                    <h4>Helvetica</h4>
+                    <p>Modern and clean sans-serif font</p>
+                </div>
+                <div class="template-option" onclick="selectFont('georgia')">
+                    <div class="template-preview" style="background: #f8f9fa; border: 2px solid #495057;">
+                        <div style="text-align: center; color: #495057; font-family: Georgia, serif;">
+                            <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 5px;">Georgia</div>
+                            <div style="font-size: 0.7rem;">Elegant & Readable</div>
+                        </div>
+                    </div>
+                    <h4>Georgia</h4>
+                    <p>Elegant serif font with excellent readability</p>
+                </div>
+                <div class="template-option" onclick="selectFont('calibri')">
+                    <div class="template-preview" style="background: #f8f9fa; border: 2px solid #495057;">
+                        <div style="text-align: center; color: #495057; font-family: Calibri, Arial, sans-serif;">
+                            <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 5px;">Calibri</div>
+                            <div style="font-size: 0.7rem;">Modern & Friendly</div>
+                        </div>
+                    </div>
+                    <h4>Calibri</h4>
+                    <p>Modern and friendly sans-serif font</p>
+                </div>
+                <div class="template-option" onclick="selectFont('roboto')">
+                    <div class="template-preview" style="background: #f8f9fa; border: 2px solid #495057;">
+                        <div style="text-align: center; color: #495057; font-family: 'Roboto', Arial, sans-serif;">
+                            <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 5px;">Roboto</div>
+                            <div style="font-size: 0.7rem;">Google's Modern Font</div>
+                        </div>
+                    </div>
+                    <h4>Roboto</h4>
+                    <p>Google's modern and clean sans-serif font</p>
+                </div>
             </div>
         </div>
 
@@ -943,11 +1020,17 @@
                 }
             });
 
-            // Apply template-specific styling
+            // Apply template-specific styling and font
             const templateStyles = getTemplateStyles(selectedTemplate);
+            const fontFamily = getFontFamily(selectedFont);
             
             preview.innerHTML = `
-                <style>${templateStyles}</style>
+                <style>
+                    ${templateStyles}
+                    body, .resume-header, .resume-section {
+                        font-family: ${fontFamily} !important;
+                    }
+                </style>
                 <div class="resume-header resume-${selectedTemplate}">
                     <h1>${name}</h1>
                     <p>${title}</p>
@@ -1008,8 +1091,9 @@
                 }
             });
 
-            // Get template-specific styles
+            // Get template-specific styles and font
             const templateStyles = getTemplateStyles(selectedTemplate);
+            const fontFamily = getFontFamily(selectedFont);
             
             const html = `
 <!DOCTYPE html>
@@ -1019,7 +1103,7 @@
     <title>${name} - Resume (${selectedTemplate})</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: ${fontFamily};
             margin: 0;
             padding: 20px;
             color: #333;
@@ -1164,12 +1248,24 @@
             document.getElementById('sectionContent').value = '';
             currentResumeId = null;
             selectedTemplate = 'modern'; // Reset to default template
+            selectedFont = 'arial'; // Reset to default font
             
             // Reset template selection UI
             document.querySelectorAll('.template-option').forEach(option => {
                 option.classList.remove('selected');
             });
             document.querySelector('.template-option').classList.add('selected');
+            
+            // Reset font selection UI
+            document.querySelectorAll('.template-option').forEach(option => {
+                if (option.onclick && option.onclick.toString().includes('selectFont')) {
+                    option.classList.remove('selected');
+                }
+            });
+            const firstFontOption = document.querySelector('[onclick="selectFont(\'arial\')"]');
+            if (firstFontOption) {
+                firstFontOption.classList.add('selected');
+            }
             
             initializeSections();
             updatePreview();
@@ -1287,6 +1383,7 @@
         let lastSavedTime = null;
         let currentResumeId = null;
         let selectedTemplate = 'modern'; // Added for template selection
+        let selectedFont = 'arial'; // Added for font selection
 
         // Auto-save functionality
         function setupAutoSave() {
@@ -1351,6 +1448,22 @@
             event.target.closest('.template-option').classList.add('selected');
             
             // Update preview with new template
+            updatePreview();
+        }
+
+        // Font selection function
+        function selectFont(font) {
+            selectedFont = font;
+            
+            // Update visual selection for font options
+            document.querySelectorAll('.template-option').forEach(option => {
+                if (option.onclick && option.onclick.toString().includes('selectFont')) {
+                    option.classList.remove('selected');
+                }
+            });
+            event.target.closest('.template-option').classList.add('selected');
+            
+            // Update preview with new font
             updatePreview();
         }
 
@@ -1514,10 +1627,67 @@
                         border: 1px solid #2c3e50;
                         font-weight: 500;
                     }
+                `,
+                simple: `
+                    .resume-simple {
+                        background: #ffffff;
+                        color: #333333;
+                        padding: 20px;
+                        text-align: left;
+                        border: none;
+                        border-radius: 0;
+                    }
+                    .resume-simple h1 {
+                        color: #333333;
+                        font-size: 2.2rem;
+                        margin-bottom: 8px;
+                        font-weight: 600;
+                        text-align: left;
+                    }
+                    .resume-simple p {
+                        color: #666666;
+                        font-size: 1.1rem;
+                        text-align: left;
+                    }
+                    .resume-simple .contact-info {
+                        margin-top: 10px;
+                        text-align: left;
+                    }
+                    .resume-simple .contact-info span {
+                        color: #666666;
+                        margin: 0 15px 0 0;
+                        font-size: 0.9rem;
+                    }
+                    .resume-section h3 {
+                        color: #333333;
+                        border-bottom: 1px solid #cccccc;
+                        padding-bottom: 5px;
+                        font-weight: 600;
+                        text-align: left;
+                    }
+                    .skill-tag {
+                        background: #f0f0f0;
+                        color: #333333;
+                        border: 1px solid #cccccc;
+                        font-weight: 500;
+                    }
                 `
             };
             
             return styles[template] || styles.modern;
+        }
+
+        // Get font family for selected font
+        function getFontFamily(font) {
+            const fonts = {
+                arial: 'Arial, sans-serif',
+                times: "'Times New Roman', serif",
+                helvetica: 'Helvetica, Arial, sans-serif',
+                georgia: 'Georgia, serif',
+                calibri: 'Calibri, Arial, sans-serif',
+                roboto: "'Roboto', Arial, sans-serif"
+            };
+            return fonts[font] || fonts.arial;
         }
 
         // Get current resume data
@@ -1531,6 +1701,7 @@
                 linkedin: document.getElementById('linkedin').value,
                 sections: sections,
                 template: selectedTemplate,
+                font: selectedFont,
                 lastModified: new Date().toISOString()
             };
         }
@@ -1554,6 +1725,21 @@
                 const templateOption = document.querySelector(`[onclick="selectTemplate('${selectedTemplate}')"]`);
                 if (templateOption) {
                     templateOption.classList.add('selected');
+                }
+            }
+            
+            // Load font if saved
+            if (data.font) {
+                selectedFont = data.font;
+                // Update font selection UI
+                document.querySelectorAll('.template-option').forEach(option => {
+                    if (option.onclick && option.onclick.toString().includes('selectFont')) {
+                        option.classList.remove('selected');
+                    }
+                });
+                const fontOption = document.querySelector(`[onclick="selectFont('${selectedFont}')"]`);
+                if (fontOption) {
+                    fontOption.classList.add('selected');
                 }
             }
             

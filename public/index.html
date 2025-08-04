@@ -802,6 +802,7 @@
                         </div>
 
                         <button class="btn btn-success" onclick="addSection()">Add Section</button>
+                        <button class="btn btn-warning" onclick="cancelEdit()" style="display: none;" id="cancelEditBtn">Cancel Edit</button>
                     </div>
 
                     <div style="margin-top: 30px;">
@@ -1056,17 +1057,91 @@
             document.getElementById('sectionContent').value = '';
         }
 
+        // Global variable to track editing state
+        let editingSectionIndex = -1;
+
         // Edit section
         function editSection(index) {
+            console.log('=== EDIT SECTION FUNCTION CALLED ===');
+            console.log('editSection called with index:', index);
+            
             const section = sections[index];
+            console.log('Section to edit:', section);
+            
+            // Load section data into form for editing
             document.getElementById('sectionType').value = section.type;
             document.getElementById('sectionTitle').value = section.title;
             document.getElementById('sectionContent').value = section.content;
             
-            // Remove the old section
-            sections.splice(index, 1);
+            // Set editing mode
+            editingSectionIndex = index;
+            
+            // Change the Add Section button to Update Section
+            const addButton = document.querySelector('button[onclick="addSection()"]');
+            if (addButton) {
+                addButton.textContent = 'Update Section';
+                addButton.onclick = updateSection;
+            }
+            
+            // Show the Cancel button
+            const cancelButton = document.getElementById('cancelEditBtn');
+            if (cancelButton) {
+                cancelButton.style.display = 'inline-block';
+            }
+            
+            console.log('Section loaded for editing. Index:', editingSectionIndex);
+            alert(`Section "${section.title}" loaded for editing. Make your changes and click "Update Section".`);
+        }
+
+        // Update section (called when editing)
+        function updateSection() {
+            console.log('=== UPDATE SECTION FUNCTION CALLED ===');
+            console.log('updateSection called. Editing index:', editingSectionIndex);
+            
+            if (editingSectionIndex === -1) {
+                console.log('No section being edited, calling addSection instead');
+                addSection();
+                return;
+            }
+            
+            const type = document.getElementById('sectionType').value;
+            const title = document.getElementById('sectionTitle').value || getDefaultTitle(type);
+            const content = document.getElementById('sectionContent').value || getDefaultContent(type);
+
+            if (!title.trim()) {
+                alert('Please enter a section title');
+                return;
+            }
+
+            // Update the existing section
+            sections[editingSectionIndex] = {
+                id: sections[editingSectionIndex].id, // Keep the same ID
+                title: title,
+                content: content,
+                type: type
+            };
+            
+            console.log('Section updated:', sections[editingSectionIndex]);
+            
+            // Reset editing mode
+            editingSectionIndex = -1;
+            
+            // Change the Update Section button back to Add Section
+            const updateButton = document.querySelector('button[onclick="updateSection()"]');
+            if (updateButton) {
+                updateButton.textContent = 'Add Section';
+                updateButton.onclick = addSection;
+            }
+            
+            // Clear form
+            document.getElementById('sectionTitle').value = '';
+            document.getElementById('sectionContent').value = '';
+            
             renderSections();
             updatePreview();
+            
+            console.log('Section update completed');
+            alert(`Section "${title}" updated successfully!`);
         }
 
         // Remove section
@@ -2167,7 +2242,9 @@
         // Update saved resumes list
         async function updateSavedResumesList() {
             try {
+                console.log('Fetching resumes for user:', currentUser);
                 const resumes = await getAllResumes();
+                console.log('Fetched resumes:', resumes);
                 const resumesList = document.getElementById('resumesList');
                 
                 if (resumes.length === 0) {
@@ -2185,49 +2262,56 @@
                                 <small style="color: #6c757d;">Saved: ${savedDate}</small>
                             </div>
                             <div style="display: flex; gap: 5px;">
-                                <button class="btn btn-secondary" onclick="loadSavedResume(${resume.id})" style="padding: 3px 8px; font-size: 11px;">Load</button>
-                                <button class="btn btn-danger" onclick="deleteSavedResume(${resume.id})" style="padding: 3px 8px; font-size: 11px;">Delete</button>
+                                <button class="btn btn-primary" onclick="editResume(${resume.id})" style="padding: 3px 8px; font-size: 11px;">Edit</button>
+                                <button class="btn btn-danger" onclick="deleteResume(${resume.id})" style="padding: 3px 8px; font-size: 11px;">Delete</button>
                             </div>
                         </div>
                     `;
                 });
                 
                 resumesList.innerHTML = html;
+                console.log('Resumes list updated successfully');
             } catch (error) {
                 console.error('Error updating resumes list:', error);
                 const resumesList = document.getElementById('resumesList');
-                resumesList.innerHTML = '<p style="color: #dc3545; font-style: italic;">Error loading resumes</p>';
+                resumesList.innerHTML = '<p style="color: #dc3545; font-style: italic;">Error loading resumes: ' + error.message + '</p>';
             }
         }
 
-        // Load a specific saved resume
-        async function loadSavedResume(id) {
-            try {
-                const resume = await loadResumeFromDatabase(id);
-                loadResumeData(resume);
-                currentResumeId = resume.id;
-                alert(`Resume "${resume.name}" loaded successfully!`);
-            } catch (error) {
-                alert('Error loading resume: ' + error.message);
-            }
-        }
+
 
         // Delete a saved resume
-        async function deleteSavedResume(id) {
+        async function deleteResume(id) {
+            console.log('=== DELETE RESUME FUNCTION CALLED ===');
+            console.log('deleteResume called with id:', id);
+            alert('DELETE BUTTON CLICKED - Preparing to delete resume');
+            
             try {
+                console.log('Loading resume data for confirmation...');
                 const resume = await loadResumeFromDatabase(id);
+                console.log('Resume to delete:', resume);
+                
                 if (confirm(`Are you sure you want to delete "${resume.name}"?`)) {
+                    console.log('User confirmed deletion, deleting from database...');
                     await deleteResumeFromDatabase(id);
+                    console.log('Resume deleted from database');
+                    
                     updateSavedResumesList();
+                    console.log('Resumes list updated');
+                    
                     alert(`Resume "${resume.name}" deleted successfully!`);
                     
                     // If we're currently editing this resume, clear the form
                     if (currentResumeId === id) {
                         currentResumeId = null;
                         clearForm();
+                        console.log('Form cleared because deleted resume was being edited');
                     }
+                } else {
+                    console.log('User cancelled deletion');
                 }
             } catch (error) {
+                console.error('Error in deleteResume:', error);
                 alert('Error deleting resume: ' + error.message);
             }
         }
@@ -2256,7 +2340,7 @@
                         document.getElementById('loginSection').style.display = 'none';
                         document.getElementById('appContent').style.display = '';
                         showUserInfoBar();
-                        loadSavedResumes();
+                        updateSavedResumesList();
                         updateHeader();
                     } else {
                         document.getElementById('loginError').innerText = data.error || 'Login failed';
@@ -2275,7 +2359,7 @@
             if (!confirm('Are you sure you want to delete ALL your resumes?')) return;
             fetch('/api/resumes/deleteAll', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: currentUser }) })
                 .then(res => res.json())
-                .then(() => loadSavedResumes());
+                .then(() => updateSavedResumesList());
         }
 
         // Initialize the application
@@ -2330,7 +2414,7 @@
             if (resumesList.style.display === 'none') {
                 resumesList.style.display = 'block';
                 button.textContent = '📋 Hide Saved Resumes';
-                loadSavedResumes();
+                updateSavedResumesList();
             } else {
                 resumesList.style.display = 'none';
                 button.textContent = '📋 Show Saved Resumes';
@@ -2349,7 +2433,7 @@
                 document.getElementById('loginSection').style.display = 'none';
                 document.getElementById('appContent').style.display = '';
                 showUserInfoBar();
-                loadSavedResumes();
+                updateSavedResumesList();
                 updateHeader();
             }
         });
@@ -2383,6 +2467,62 @@
                 header.innerHTML = '📄 Dynamic HTML to PDF Resume Maker';
                 document.getElementById('headerUserInfo').style.display = 'none';
             }
+        }
+
+        // Edit a saved resume (load for editing)
+        async function editResume(id) {
+            console.log('=== EDIT RESUME FUNCTION CALLED ===');
+            console.log('editResume called with id:', id);
+            alert('EDIT BUTTON CLICKED - Loading resume for editing');
+            
+            try {
+                console.log('Loading resume data from database...');
+                const resume = await loadResumeFromDatabase(id);
+                console.log('Resume loaded:', resume);
+                
+                console.log('Loading resume data into form...');
+                loadResumeData(resume);
+                currentResumeId = resume.id;
+                
+                console.log('Edit operation completed successfully');
+                alert(`Resume "${resume.name}" loaded for editing!`);
+            } catch (error) {
+                console.error('Error in editResume:', error);
+                alert('Error loading resume for editing: ' + error.message);
+            }
+        }
+
+        // Cancel editing mode
+        function cancelEdit() {
+            console.log('=== CANCEL EDIT FUNCTION CALLED ===');
+            console.log('Canceling edit mode. Previous editing index:', editingSectionIndex);
+            
+            // Reset editing mode
+            editingSectionIndex = -1;
+            
+            // Change the Update Section button back to Add Section
+            const updateButton = document.querySelector('button[onclick="updateSection()"]');
+            if (updateButton) {
+                updateButton.textContent = 'Add Section';
+                updateButton.onclick = addSection;
+            }
+            
+            // Hide the Cancel button
+            const cancelButton = document.getElementById('cancelEditBtn');
+            if (cancelButton) {
+                cancelButton.style.display = 'none';
+            }
+            
+            // Clear form
+            document.getElementById('sectionTitle').value = '';
+            document.getElementById('sectionContent').value = '';
+            
+            // Clear form
+            document.getElementById('sectionTitle').value = '';
+            document.getElementById('sectionContent').value = '';
+            
+            console.log('Edit mode canceled');
+            alert('Edit mode canceled. You can now add a new section.');
         }
     </script>
 </body>

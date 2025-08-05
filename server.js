@@ -8,18 +8,64 @@ const sqlite3 = require('sqlite3').verbose();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
+
+// Enhanced CORS configuration for deployment
+app.use(cors({
+    origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : '*',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+
+// Security middleware
+app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    next();
+});
 
 // Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.static('public'));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.static('public', {
+    maxAge: NODE_ENV === 'production' ? '1d' : 0,
+    etag: true
+}));
 
-// Configure multer for file uploads
-const upload = multer({ dest: 'uploads/' });
+// Configure multer for file uploads with better error handling
+const upload = multer({ 
+    dest: 'uploads/',
+    limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB limit
+        files: 1
+    },
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype === 'text/html' || file.originalname.endsWith('.html')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only HTML files are allowed'), false);
+        }
+    }
+});
 
-// Database setup
+// Database setup with better error handling
 const dbPath = path.join(__dirname, 'resumes.db');
-const db = new sqlite3.Database(dbPath);
+let db;
+
+try {
+    db = new sqlite3.Database(dbPath, (err) => {
+        if (err) {
+            console.error('Error opening database:', err.message);
+            process.exit(1);
+        }
+        console.log('Connected to SQLite database successfully');
+    });
+} catch (error) {
+    console.error('Database initialization error:', error);
+    process.exit(1);
+}
 
 // Initialize database tables
 function initializeDatabase() {
@@ -293,20 +339,88 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-    console.log('HTML to PDF converter ready!');
-    console.log(`Database file: ${dbPath}`);
+// Health check endpoint for deployment platforms
+app.get('/health', (req, res) => {
+    res.status(200).json({ 
+        status: 'OK', 
+        timestamp: new Date().toISOString(),
+        environment: NODE_ENV,
+        version: '1.0.0'
+    });
 });
 
-// Graceful shutdown
-process.on('SIGINT', () => {
-    db.close((err) => {
-        if (err) {
-            console.error('Error closing database:', err);
-        } else {
-            console.log('Database connection closed.');
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error('Error:', err);
+    
+    if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({ error: 'File too large. Maximum size is 5MB.' });
         }
-        process.exit(0);
+        return res.status(400).json({ error: 'File upload error: ' + err.message });
+    }
+    
+    res.status(500).json({ 
+        error: NODE_ENV === 'production' ? 'Internal server error' : err.message 
     });
+});
+
+// 404 handler
+app.use((req, res) => {
+    res.status(404).json({ error: 'Route not found' });
+});
+
+// Start server with better error handling
+const server = app.listen(PORT, () => {
+    console.log('🚀 Resume Maker Server Started Successfully!');
+    console.log(`📍 Server running on http://localhost:${PORT}`);
+    console.log(`🌍 Environment: ${NODE_ENV}`);
+    console.log(`📊 Health check: http://localhost:${PORT}/health`);
+    console.log(`💾 Database: ${dbPath}`);
+    console.log('✨ HTML to PDF converter ready!');
+    console.log('📝 Resume management system active');
+});
+
+// Enhanced graceful shutdown
+const gracefulShutdown = (signal) => {
+    console.log(`\n🛑 Received ${signal}. Starting graceful shutdown...`);
+    
+    server.close(() => {
+        console.log('✅ HTTP server closed');
+        
+        if (db) {
+            db.close((err) => {
+                if (err) {
+                    console.error('❌ Error closing database:', err);
+                } else {
+                    console.log('✅ Database connection closed');
+                }
+                console.log('👋 Server shutdown complete');
+                process.exit(0);
+            });
+        } else {
+            console.log('👋 Server shutdown complete');
+            process.exit(0);
+        }
+    });
+    
+    // Force shutdown after 10 seconds
+    setTimeout(() => {
+        console.error('⚠️ Could not close connections in time, forcefully shutting down');
+        process.exit(1);
+    }, 10000);
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+    console.error('💥 Uncaught Exception:', err);
+    gracefulShutdown('uncaughtException');
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('💥 Unhandled Rejection at:', promise, 'reason:', reason);
+    gracefulShutdown('unhandledRejection');
 }); 
